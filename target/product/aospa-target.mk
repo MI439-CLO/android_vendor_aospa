@@ -24,6 +24,10 @@ PRODUCT_COPY_FILES += \
     vendor/aospa/target/config/apns-conf.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/apns-conf.xml
 
 # Audio
+ifeq ($(TARGET_DISABLES_GMS), true)
+$(call inherit-product, frameworks/base/data/sounds/AllAudio.mk)
+endif
+
 # Increase volume level steps
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.media_vol_steps=30
@@ -36,6 +40,11 @@ PRODUCT_PACKAGES += \
     GoogleCameraGo
 
 # Charger
+ifeq ($(TARGET_DISABLES_GMS), true)
+PRODUCT_PACKAGES += \
+    product_charger_res_images
+endif
+
 PRODUCT_SYSTEM_EXT_PROPERTIES += \
     ro.charger.enable_suspend=1
 
@@ -43,13 +52,28 @@ PRODUCT_SYSTEM_EXT_PROPERTIES += \
 PRODUCT_PACKAGES += \
     curl
 
+# Custom Apps
+ifeq ($(TARGET_DISABLES_GMS), true)
+#PRODUCT_PACKAGES += \
+#    DuckDuckGo \
+#    ExactCalculator \
+#    SimpleCalendar \
+#    SimpleGallery
+PRODUCT_PACKAGES += \
+    Etar \
+    ExactCalculator \
+    Jelly
+endif
+
 # Dex2oat
 PRODUCT_SYSTEM_EXT_PROPERTIES += \
     dalvik.vm.dex2oat64.enabled=true
 
 # Dexpreopt
 # Don't dexpreopt prebuilts. (For GMS).
+ifneq ($(TARGET_DISABLES_GMS), true)
 DONT_DEXPREOPT_PREBUILTS := true
+endif
 
 PRODUCT_DEXPREOPT_SPEED_APPS += \
     ParanoidSystemUI
@@ -80,12 +104,17 @@ PRODUCT_PACKAGES += \
     vendor.aospa.power-service
 
 # Google - GMS, Pixel, and Mainline Modules
+ifeq ($(TARGET_DISABLES_GMS), true)
+$(warning Building Without GAPPS)
+else
+$(warning Building With GAPPS)
 $(call inherit-product, vendor/google/gms/config.mk)
 $(call inherit-product, vendor/google/pixel/config.mk)
 ifneq ($(TARGET_FLATTEN_APEX), true)
 $(call inherit-product-if-exists, vendor/google/modules/build/mainline_modules.mk)
 else
 $(call inherit-product-if-exists, vendor/google/modules/build/mainline_modules_flatten_apex.mk)
+endif
 endif
 
 # HIDL
